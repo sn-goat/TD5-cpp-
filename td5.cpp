@@ -1,4 +1,4 @@
-﻿/**
+/**
 * Programme qui lit le fichier binaire films.bin et le fichier text Livre.txt afin
  * de creer une bibliothèque. La class bilitothèque contient les livres, les films  et
  * les combos LivreFilm sous forme d'Item. Chaque item est affiché grâce à la
