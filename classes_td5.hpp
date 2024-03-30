@@ -1,4 +1,4 @@
-﻿/**
+/**
 * Ficher hpp qui contient la définition des class Liste,
  * bibliothèque, Affichable, Item, Film, Acteur, Livre et FilmLivre.
 * \file classes_td5.Hpp
