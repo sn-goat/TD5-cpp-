@@ -394,14 +394,14 @@ int main()
     cout << "Forward_list inversé copier dans une autre forward_list: \n";
     forward_list<Item*> forwardListBibliCopie;
     forwardListBibliInverse.reverse();
-    debutForwardList = forwardListBibli.begin();
-    finForwardList = forwardListBibli.end();
+    debutForwardList = forwardListBibliInverse.begin();
+    finForwardList = forwardListBibliInverse.end();
 
     itList = forwardListBibliCopie.before_begin();
     for (auto it = debutForwardList; it != finForwardList; ++it) {
         const auto &item = *it;
         if (item) {// Vérifie si l'élément est non nul
-            forwardListBibli.insert_after(itList, item);
+            forwardListBibliCopie.insert_after(itList, item);
             ++itList;
         }
     }
