@@ -24,14 +24,14 @@ class Liste {
 public:
     Liste() = default;
     explicit Liste(int capaciteInitiale) :
-            capacite_(capaciteInitiale),
-            elements_(capaciteInitiale)
+        capacite_(capaciteInitiale),
+        elements_(capaciteInitiale)
     {
     }
     Liste(const Liste<T>& autre) :
-            capacite_(autre.nElements_),
-            nElements_(autre.nElements_),
-            elements_(autre.nElements_)
+        capacite_(autre.nElements_),
+        nElements_(autre.nElements_),
+        elements_(autre.nElements_)
     {
         for (int i = 0; i < nElements_; ++i)
             elements_[i] = autre.elements_[i];
@@ -104,7 +104,7 @@ public:
 
 };
 
-class Item: public Affichable, public Copiable {
+class Item : public Affichable, public Copiable {
 public:
     void afficher(ostream& os) const override;
     Item() = default;
@@ -137,7 +137,7 @@ public:
 };
 
 
-class Film :virtual public Item{
+class Film :virtual public Item {
 public:
     Film() = default;
     void afficher(ostream& os) const override;
@@ -148,7 +148,7 @@ public:
     const vector<shared_ptr<Acteur>>& obtenirActeurs() const override;
 
     unique_ptr<Copiable> copier() override { return make_unique<Film>(CopySlice, *this); }
-
+    int obtenirRecette() const { return recette_; }
 private:
     int recette_ = 0;
     ListeActeurs acteurs_;
@@ -158,10 +158,10 @@ protected:
 
 public:
     Film(CopySlice_t, const Film& film) : Item(CopySlice, film), recette_(film.recette_),
-    acteurs_(film.acteurs_), realisateur_(film.realisateur_){}
+        acteurs_(film.acteurs_), realisateur_(film.realisateur_) {}
 };
 
-class Livre : virtual public Item  {
+class Livre : virtual public Item {
 public:
     Livre() = default;
     void afficher(ostream& os) const override;
@@ -178,19 +178,19 @@ protected:
 
 public:
     Livre(CopySlice_t, const Livre& livre) : Item(CopySlice, livre), millionsCopiesVendues_(livre.millionsCopiesVendues_),
-    nombresPages_(livre.nombresPages_),auteur_(livre.auteur_) {}
+        nombresPages_(livre.nombresPages_), auteur_(livre.auteur_) {}
 };
 
 class FilmLivre : public Film, public Livre {
 public:
-    FilmLivre(const Film &film, const Livre &livre) : Item(CopySlice, film), Film(CopySlice, film),
-                                                      Livre(CopySlice, livre) {}
+    FilmLivre(const Film& film, const Livre& livre) : Item(CopySlice, film), Film(CopySlice, film),
+        Livre(CopySlice, livre) {}
 
     FilmLivre(CopySlice_t, const FilmLivre& filmLivre) : Item(CopySlice, filmLivre), Film(CopySlice, filmLivre),
-                                                         Livre(CopySlice, filmLivre) {}
+        Livre(CopySlice, filmLivre) {}
 
-    void afficher(ostream &os) const override;
-    friend ostream &operator<<(ostream &os, const FilmLivre &filmLivre);
+    void afficher(ostream& os) const override;
+    friend ostream& operator<<(ostream& os, const FilmLivre& filmLivre);
 
     unique_ptr<Copiable> copier() override { return make_unique<FilmLivre>(CopySlice, *this); }
 
@@ -207,4 +207,3 @@ public:
 private:
     string nom_; int anneeNaissance_ = 0; char sexe_ = '\0';
 };
-
