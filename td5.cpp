@@ -12,7 +12,7 @@
 #pragma region "Includes"//{
 #define _CRT_SECURE_NO_WARNINGS // On permet d'utiliser les fonctions de copies de chaînes qui sont considérées non sécuritaires.
 
-#include "classes_td5.hpp"      // Structures de données pour la collection de films en mémoire.
+#include "structures.hpp"      // Structures de données pour la collection de films en mémoire.
 
 #include "bibliotheque_cours.hpp"
 #include "verification_allocation.hpp" // Nos fonctions pour le rapport de fuites de mémoire.
@@ -27,6 +27,9 @@
 #include <iterator>
 #include <list>
 #include <forward_list>
+#include <set>
+#include <unordered_map>
+#include <numeric>
 #include "cppitertools/range.hpp"
 #include "gsl/span"
 #include "debogage_memoire.hpp"        // Ajout des numéros de ligne des "new" dans le rapport de fuites.  Doit être après les include du système, qui peuvent utiliser des "placement new" (non supporté par notre ajout de numéros de lignes).
@@ -53,11 +56,11 @@ size_t lireUintTailleVariable(istream& fichier)
 {
     uint8_t entete = lireType<uint8_t>(fichier);
     switch (entete) {
-        case enteteTailleVariableDeBase + 0: return lireType<uint8_t>(fichier);
-        case enteteTailleVariableDeBase + 1: return lireType<uint16_t>(fichier);
-        case enteteTailleVariableDeBase + 2: return lireType<uint32_t>(fichier);
-        default:
-            erreurFataleAssert("Tentative de lire un entier de taille variable alors que le fichier contient autre chose à cet emplacement.");  //NOTE: Il n'est pas possible de faire des tests pour couvrir cette ligne en plus du reste du programme en une seule exécution, car cette ligne termine abruptement l'exécution du programme.  C'est possible de la couvrir en exécutant une seconde fois le programme avec un fichier films.bin qui contient par exemple une lettre au début.
+    case enteteTailleVariableDeBase + 0: return lireType<uint8_t>(fichier);
+    case enteteTailleVariableDeBase + 1: return lireType<uint16_t>(fichier);
+    case enteteTailleVariableDeBase + 2: return lireType<uint32_t>(fichier);
+    default:
+        erreurFataleAssert("Tentative de lire un entier de taille variable alors que le fichier contient autre chose à cet emplacement.");  //NOTE: Il n'est pas possible de faire des tests pour couvrir cette ligne en plus du reste du programme en une seule exécution, car cette ligne termine abruptement l'exécution du programme.  C'est possible de la couvrir en exécutant une seconde fois le programme avec un fichier films.bin qui contient par exemple une lettre au début.
     }
 }
 
@@ -201,7 +204,7 @@ void Film::afficher(ostream& os) const
 void Livre::afficher(ostream& os) const
 {
     Item::afficher(os);
-    os << ", de " <<  auteur_;
+    os << ", de " << auteur_;
 }
 
 void FilmLivre::afficher(ostream& os) const
@@ -265,8 +268,8 @@ template <typename T>
 concept ConvertibleEnSpanConst = is_convertible_v<T, EnSpanConst<T>>;
 
 template <typename T>
-requires ranges::input_range<T> && (!ConvertibleEnSpanConst<T>)
-ostream& afficherListeItems(ostream& os, const T& listeItems){
+    requires ranges::input_range<T> && (!ConvertibleEnSpanConst<T>)
+ostream& afficherListeItems(ostream& os, const T& listeItems) {
     for (auto&& item : listeItems) {
         if (item) {  // Vérifie si l'élément est non nul
             item->afficher(os);
@@ -277,7 +280,7 @@ ostream& afficherListeItems(ostream& os, const T& listeItems){
 }
 
 template <ConvertibleEnSpanConst T>
-ostream& afficherListeItems(ostream& os, const T& listeItems){
+ostream& afficherListeItems(ostream& os, const T& listeItems) {
     for (auto&& item : EnSpanConst<T>(listeItems)) {
         if (item) {  // Vérifie si l'élément est non nul
             item->afficher(os);
@@ -316,11 +319,11 @@ int main()
 
     auto hobbitFilm = bibliotheque.trouver([](const Item& item) {
         return dynamic_cast<const Film*>(&item) != nullptr && item.obtenirTitre() == "Le Hobbit : La Bataille des Cinq Armées";
-    });
+        });
 
     auto hobbitLivre = bibliotheque.trouver([](const Item& item) {
         return dynamic_cast<const Livre*>(&item) != nullptr && item.obtenirTitre() == "The Hobbit";
-    });
+        });
 
     if (hobbitFilm && hobbitLivre) {
 
@@ -365,7 +368,7 @@ int main()
 
     auto itList = forwardListBibli.before_begin();
     for (auto it = debut; it != fin; ++it) {
-        const auto &item = *it;
+        const auto& item = *it;
         if (item) {// Vérifie si l'élément est non nul
             forwardListBibli.insert_after(itList, item.get());
             ++itList;
@@ -381,7 +384,7 @@ int main()
     auto finForwardList = forwardListBibli.end();
 
     for (auto it = debutForwardList; it != finForwardList; ++it) {
-        const auto &item = *it;
+        const auto& item = *it;
         if (item) {// Vérifie si l'élément est non nul
             forwardListBibliInverse.push_front(item);
         }
@@ -399,7 +402,7 @@ int main()
 
     itList = forwardListBibliCopie.before_begin();
     for (auto it = debutForwardList; it != finForwardList; ++it) {
-        const auto &item = *it;
+        const auto& item = *it;
         if (item) {// Vérifie si l'élément est non nul
             forwardListBibliCopie.insert_after(itList, item);
             ++itList;
@@ -419,7 +422,7 @@ int main()
     finForwardList = forwardListBibli.end(); // une assignation est 0(1)
 
     for (auto it = debutForwardList; it != finForwardList; ++it) { // une assignation, une comparaison et une addition dans une loop for sont O(n) : (1 + 1 + 1) * n = 3n
-        const auto &item = *it;
+        const auto& item = *it;
         if (item) { // un comparaison est dans un boucle for est 0(n) : 1 * n = n
             vectorBibli[--index] = item; // l'opération [] dans une boucle for est 0(n) : 1 * n = n
         }
@@ -433,15 +436,53 @@ int main()
 
     //1.5
     cout << "Acteurs du premier film Alien: \n";
-    Film*  film = dynamic_cast<Film*>(bibliotheque[0].get());
-    for(auto&& acteur : film->obtenirActeurs()){
+    Film* film = dynamic_cast<Film*>(bibliotheque[0].get());
+    for (auto&& acteur : film->obtenirActeurs()) {
         cout << *acteur;
     }
 
     cout << ligneDeSeparation;
+    //2.2
 
+    struct ComparateurAlphabetique {
+        bool operator() (const Item* a, const Item* b) const
+        {
+            return a->obtenirTitre() < b->obtenirTitre();
+        }
+    };
 
+    set<Item*, ComparateurAlphabetique> ensembleItems = {};
+    for (auto&& item : listBibli)
+    {
+        ensembleItems.insert(item.get());
+    }
+    cout << "Affichage en ordre alphabétique:" << endl;
+    afficherListeItems(cout, ensembleItems);
+    cout << ligneDeSeparation;
 
+    //2.2
+    cout << "Affichage de 'The Hobbit':" << endl;
+    unordered_map<string, unique_ptr<Item>> mapItems;
+    for (auto&& item : listBibli) {
+        mapItems[item->obtenirTitre()] = move(item);
+    }
+    auto it = mapItems.find("Le Hobbit : La Bataille des Cinq Armées");
+    if (it != mapItems.end()) {
+        cout << *it->second << endl;
+    }
+    else {
+        cout << "L'élément 'The Hobbit' n'existe pas dans la bibliothèque." << endl;
+    }
+    cout << ligneDeSeparation;
+    //3.1
+    vector<Item*> copieFilms;
+    copy_if(forwardListBibli.begin(), forwardListBibli.end(), back_inserter(copieFilms), [](Item* a) { return dynamic_cast<Film*>(a) != nullptr; });
+    cout << "Copie des items Films de 1.1: " << endl;
+    afficherListeItems(cout,copieFilms);
+    cout << ligneDeSeparation;
+    //3.2
+    cout << "Recette totale de tous les Films : " << accumulate(begin(copieFilms), end(copieFilms), 0,
+        [](int i, Item* a) {return dynamic_cast<Film*>(a)->obtenirRecette() + i;}) <<"M$"<< endl;
 
     return 0;
 
